@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <h1 id="title">Weather Dashboard</h1>
+    <div class="">
+        <div class="row">
+            <div class="col-md-2">
+                <h3 id="search">Search for a City:</h3>
+                <form id="form">
+                    <input type="text" id="input">
+                    <button id="btn-search">
+                        <img src="">
+                    </button>
+                </form>
+                <div class="prev-search">
+                </div>
+            </div>
+            <div class="col-md-10">
+                <h2 id="city-date"></h2>
+                <div class="currweather"></div>
+                <h2 id="forecast">5-Day Forecast</h2>
+                <div class="row" id="forecast-area">
+                  
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script type="text/javascript">
+
+
+    
+
+    var q;
+    var cities=[];
+    // var j=0;
+
+
+
+        cities = JSON.parse(localStorage.getItem("cities"))
+        if (!cities) {
+            cities=[];
+        }
+        // console.log(cities)
+
+        for (let i = 0; i < cities.length; i++) {
+            // console.log(cities[i])
+            let prevcities = $("<p>").text(cities[i])
+
+            $(".prev-search").append(prevcities);
+        }
+        // $("#btn-search").click(function (event) {
+        
+        
+        function getweather() {
+            event.preventDefault();
+            $(".currweather").empty();
+            var lat;
+            var lon;
+
+
+            console.log(event.target.textContent)
+
+            
+            q = $("#input")[0].value;
+            
+
+            // console.log(q)
+
+            // $(q).attr("index", j)
+            // console.log(q, j)
+            // j++;
+
+            cities.push(q)
+            // console.log(cities)
+
+            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + q + "&units=imperial&appid=43d38225bdd4748703de55caa2bc748a";
+
+
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (weather) {
+                //console.log(weather)
+                var temp = Math.floor(weather.main.temp);
+                var humidity = weather.main.humidity;
+                var wind = weather.wind.speed.toFixed(1);
+                lat = weather.coord.lat;
+                lon = weather.coord.lon;
+                // console.log("Temperature is: " + temp)
+                // console.log("Humidity is: " + humidity)
+                // console.log("Wind speed is: " + wind)
+                // console.log("Longitude and Latitude coordinates are: " + lat + " & " + lon)
+
+                var pOne = $("<p>").text("Temperature: " + temp + "F")
+                var pTwo = $("<p>").text("Humidity: " + humidity + "%")
+                var pThree = $("<p>").text("Wind Speed: " + wind + "MPH")
+
+
+
+                var queryURL = "http://api.openweathermap.org/data/2.5/uvi?&appid=43d38225bdd4748703de55caa2bc748a&lat=" + lat + "&lon=" + lon + ""
+
+                $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                }).then(function (uv) {
+                    // console.log(uv)
+                    var uvindex = uv.value;
+                    //console.log("UV Index is: " + uvindex)
+                 
+                    var pFour = $("<p>").addClass("uv").text("UV Index: " + uvindex)
+
+                    $("#city-date").text(weather.name)
+                    $(".currweather").append(pOne)
+                    $(".currweather").append(pTwo)
+                    $(".currweather").append(pThree)
+                    $(".currweather").append(pFour)
+
+                })
+            })
+            // Return 5-Day Forecast header, date, icon, temp, humidity 
+            var queryURL = "https://api.openweathermap.org/data/2.5/forecast?q=" + q + "&units=imperial&appid=43d38225bdd4748703de55caa2bc748a"
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (forecast) {
+                // console.log(forecast)
+
+                for (let i = 0; i < forecast.list.length; i++) {
+
+                    if (forecast.list[i].dt_txt.indexOf("12:00:00") !== -1) {   // dt+txt  "01-02-2020 00:00:00"    "01-02-2020 12:00:00"
+                    // console.log(forecast.list[i].dt_txt)
+                        var farr = forecast.list;
+                        var castdate = forecast.list[i].dt_txt;
+                        var casticon = forecast.list[i].weather[0].icon;
+                        var casttemp = Math.floor(forecast.list[i].main.temp);
+                        var casthumidity = forecast.list[i].main.humidity;
+
+                        // console.log(forecast.list[i].main.temp)
+                        //console.log("for date: " + castdate + ", temp will be: " + casttemp + ", humidity will be: " + casthumidity)
+
+                        //var daily = $("<div>").addClass("dailyfc").text(castdate + "\n" + casticon + "\n" + casttemp + "\n" + casthumidity)
+                        var forecastCard=`<div class="col"><div class="card bg-primary text-white" style="width: 15rem;">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${castdate}</h5>
+                                                <img src="http://openweathermap.org/img/wn/${casticon}.png"  alt="...">
+                                                <p class="card-text">Temp: ${casttemp}.</p>
+                                                <p class="card-text">Humidity: ${casthumidity}.</p>
+                                            </div>
+                                            </div>
+                                            </div>`
+                                        
+                    // build every line h5 , img, p p   // create the div class card-body , append the lines to the card body create the card clas bd-prive text-white append body to the card then append to the col
+              
+                        $("#forecast-area").append(forecastCard)
+                    }
+                }
+                
+            })
+
+         setStorage();   
+        }
+
+    function getweatherprev() {
+            event.preventDefault();
+            $(".currweather").empty();
+            var lat;
+            var lon;
+
+
+            console.log(event.target.textContent)
+           
+            q= event.target.textContent;
+            
+            
+
+            // console.log(q)
+
+            // $(q).attr("index", j)
+            // console.log(q, j)
+            // j++;
+
+            cities.push(q)
+            // console.log(cities)
+
+            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + q + "&units=imperial&appid=43d38225bdd4748703de55caa2bc748a";
+
+
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (weather) {
+                //console.log(weather)
+                var temp = Math.floor(weather.main.temp);
+                var humidity = weather.main.humidity;
+                var wind = weather.wind.speed.toFixed(1);
+                lat = weather.coord.lat;
+                lon = weather.coord.lon;
+                // console.log("Temperature is: " + temp)
+                // console.log("Humidity is: " + humidity)
+                // console.log("Wind speed is: " + wind)
+                // console.log("Longitude and Latitude coordinates are: " + lat + " & " + lon)
+
+                var pOne = $("<p>").text("Temperature: " + temp + "F")
+                var pTwo = $("<p>").text("Humidity: " + humidity + "%")
+                var pThree = $("<p>").text("Wind Speed: " + wind + "MPH")
+
+
+
+                var queryURL = "http://api.openweathermap.org/data/2.5/uvi?&appid=43d38225bdd4748703de55caa2bc748a&lat=" + lat + "&lon=" + lon + ""
+
+                $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                }).then(function (uv) {
+                    // console.log(uv)
+                    var uvindex = uv.value;
+                    //console.log("UV Index is: " + uvindex)
+                 
+                    var pFour = $("<p>").addClass("uv").text("UV Index: " + uvindex)
+
+                    $("#city-date").text(weather.name)
+                    $(".currweather").append(pOne)
+                    $(".currweather").append(pTwo)
+                    $(".currweather").append(pThree)
+                    $(".currweather").append(pFour)
+
+                })
+            })
+            // Return 5-Day Forecast header, date, icon, temp, humidity 
+            var queryURL = "https://api.openweathermap.org/data/2.5/forecast?q=" + q + "&units=imperial&appid=43d38225bdd4748703de55caa2bc748a"
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (forecast) {
+                // console.log(forecast)
+
+                for (let i = 0; i < forecast.list.length; i++) {
+
+                    if (forecast.list[i].dt_txt.indexOf("12:00:00") !== -1) {   // dt+txt  "01-02-2020 00:00:00"    "01-02-2020 12:00:00"
+                    // console.log(forecast.list[i].dt_txt)
+                        var farr = forecast.list;
+                        var castdate = forecast.list[i].dt_txt;
+                        var casticon = forecast.list[i].weather[0].icon;
+                        var casttemp = Math.floor(forecast.list[i].main.temp);
+                        var casthumidity = forecast.list[i].main.humidity;
+
+                        // console.log(forecast.list[i].main.temp)
+                        //console.log("for date: " + castdate + ", temp will be: " + casttemp + ", humidity will be: " + casthumidity)
+
+                        //var daily = $("<div>").addClass("dailyfc").text(castdate + "\n" + casticon + "\n" + casttemp + "\n" + casthumidity)
+                        var forecastCard=`<div class="col"><div class="card bg-primary text-white" style="width: 15rem;">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${castdate}</h5>
+                                                <img src="http://openweathermap.org/img/wn/${casticon}.png"  alt="...">
+                                                <p class="card-text">Temp: ${casttemp}.</p>
+                                                <p class="card-text">Humidity: ${casthumidity}.</p>
+                                            </div>
+                                            </div>
+                                            </div>`
+                                        
+                    // build every line h5 , img, p p   // create the div class card-body , append the lines to the card body create the card clas bd-prive text-white append body to the card then append to the col
+              
+                        $("#forecast-area").append(forecastCard)
+                    }
+                }
+                
+            })
+
+         setStorage();   
+        }
+    
+
+
+        function setStorage() {
+            localStorage.setItem("cities", JSON.stringify(cities))
+        }
+
+        $("#btn-search").click(getweather) 
+
+        $(".prev-search").click(getweatherprev)
+
+
+// you need to be able to search from the serarch form and from clicking the button from the history list
+
+// cick for the submit in the search (get the city from the form and searchCity(city))
+// on click for the buttons history (get the content inside the button then seacrcity(city))
+// sidebar show the hisotry: when the page load and every time you add a new city /// this means you need to read localstorage when you load the page and render 
+    </script>
+
+</body>
+
+</html>

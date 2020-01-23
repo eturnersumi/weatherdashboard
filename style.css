@@ -1,0 +1,14 @@
+.col-md-2 {
+    border: solid 1px;
+    border-color: red;
+    padding-left: 30px;
+}
+
+.col-md-10 {
+    border: solid 1px;
+    border-color: blue;
+}
+
+.row {
+   
+}
